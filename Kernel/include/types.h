@@ -5,19 +5,10 @@
 
 #define NULL (void *)0
 
+typedef enum {false = 0, true = 1} bool;
+
 #pragma pack(push)
 #pragma pack (1) 		/* Alinear las siguiente estructuras a 1 byte */
-
-/* Descriptor de segmento */
-// typedef struct {
-//   word limit,
-//        base_l;
-//   byte base_m,
-//        access,
-//        attribs,
-//        base_h;
-// } DESCR_SEG;
-
 
 /* Descriptor de interrupcion */
 typedef struct {
@@ -38,4 +29,4 @@ typedef struct {
 
 #pragma pack(pop)
 
-#endif /* TYPES_H_ */
+#endif

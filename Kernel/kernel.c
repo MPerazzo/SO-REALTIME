@@ -88,10 +88,10 @@ int main()
 	clear_screen();
 	init_syscalls();
 	init_interrupts();
-
-	//buddytest();
 	
 	puts_at("Arqui OS", GREEN, 0, 0);
+
+	//buddytest();
 
 	((EntryPoint)codeModuleAddress)();
 
@@ -99,6 +99,10 @@ int main()
 }
 
 void buddytest() {
+
+	// test without aligment, as buddy.c functions are used instead of memlibs.
+
+	init_kheap();
 
 	buddy_init(32);
 

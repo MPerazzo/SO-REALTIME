@@ -174,11 +174,6 @@ uint64_t sys_sbrk(uint64_t increment, uint64_t arg2, uint64_t arg3) {
 	return (uint64_t)MEM_START;
 }
 
-// TODO : remove
-uint64_t kmalloc(uint64_t cant) {
-	return sys_sbrk(cant, 0, 0);
-}
-
 /* Shows/hides the clock in the top right corner of the screen, returns a string representation of the time with the format hh:mm:ss */
 uint64_t sys_time(uint64_t arg1, uint64_t arg2, uint64_t arg3) {
 	if (remove_task((uint64_t)show_time)) {

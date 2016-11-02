@@ -3,11 +3,6 @@
 
 #include <types.h>
 
-typedef enum {
-	false = 0,
-	true = 1,
-} bool;
-
 void timer_handler(void);
 
 bool add_task(unsigned int seconds, unsigned long handler, bool forever);

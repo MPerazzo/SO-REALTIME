@@ -1,4 +1,5 @@
 #include "buddy.h"
+#include "memlib.h"
 #include "video.h"
 #include "types.h"
 /* TODO: 
@@ -230,17 +231,13 @@ void _buddy_print(node_t *n) {
     //this node is either ALLOC or FREE so draw it 
     for (i = 0; i < n->size; i++) {
         if (n->state == FREE) {
-            puts("-,", WHITE);
+            puts("-,", LIGHT_GREY);
         } else {
-            putnumber(n->idx, WHITE);
-            puts(",", WHITE);
+            putnumber(n->idx, LIGHT_GREY);
+            puts(",", LIGHT_GREY);
         }
     }
-    puts("|", WHITE);
-}
-
-void kfree() {
-
+    puts("|", LIGHT_GREY);
 }
 
 /* recursion wrappers */
@@ -251,7 +248,11 @@ uint64_t buddy_free(uint64_t idx) { return _buddy_free(buddy_head, idx); }
 
 uint64_t buddy_size(uint64_t idx) { return _buddy_size(buddy_head, idx); }
 
-void buddy_print(void) { _buddy_print(buddy_head); }
+void buddy_print(void) {
+	puts("Buddy print is:\n", LIGHT_GREY);
+	_buddy_print(buddy_head);
+	puts(" --END--\n", LIGHT_GREY); 
+}
 
 void buddy_kill(void) { _buddy_kill(buddy_head); }
 
