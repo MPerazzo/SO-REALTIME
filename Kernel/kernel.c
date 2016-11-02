@@ -87,6 +87,16 @@ int main()
 	clear_screen();
 	init_syscalls();
 	init_interrupts();
+
+	buddy_init(16);
+
+	buddy_alloc(2);
+
+//	buddy_print();
+
+	buddy_alloc(4);
+
+//	buddy_print();
 	
 	puts_at("Arqui OS", GREEN, 0, 0);
 
