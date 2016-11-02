@@ -1,11 +1,12 @@
 #include <stdint.h>
-#include <string.h>
 #include <lib.h>
 #include <moduleLoader.h>
 #include <naiveConsole.h>
 #include <video.h>
 #include <interrupts.h>
 #include <syscalls.h>
+#include <memallocator.h>
+#include <buddy.h>
 
 extern uint8_t text;
 extern uint8_t rodata;
@@ -88,19 +89,33 @@ int main()
 	init_syscalls();
 	init_interrupts();
 
-	buddy_init(16);
-
-	buddy_alloc(2);
-
-//	buddy_print();
-
-	buddy_alloc(4);
-
-//	buddy_print();
+	//buddytest();
 	
 	puts_at("Arqui OS", GREEN, 0, 0);
 
 	((EntryPoint)codeModuleAddress)();
 
 	return 0;
+}
+
+void buddytest() {
+
+	buddy_init(32);
+
+	ncPrintHex(0x600000 + buddy_alloc(8));
+
+    ncNewline();
+
+	ncPrintHex(0x600000 + buddy_alloc(16));
+
+	ncNewline();
+
+	ncPrintHex(0x600000 + buddy_alloc(4));
+
+	ncNewline();
+
+	ncPrintHex(0x600000 + buddy_alloc(4));
+
+	buddy_print();
+
 }

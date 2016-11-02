@@ -1,7 +1,6 @@
 #include "buddy.h"
 #include "video.h"
-#include "string.h"
-
+#include "types.h"
 /* TODO: 
    *remove kmalloc from syscalls, call int 80. 
    *New library for buddy print?

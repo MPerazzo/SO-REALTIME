@@ -3,6 +3,8 @@
 
 #include <stdint.h>
 
+#define NULL (void *)0
+
 #pragma pack(push)
 #pragma pack (1) 		/* Alinear las siguiente estructuras a 1 byte */
 
