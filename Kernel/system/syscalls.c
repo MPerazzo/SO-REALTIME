@@ -4,6 +4,7 @@
 #include <bga.h>
 #include <timer.h>
 #include <rtc.h>
+#include <memlib.h>
 
 extern void haltcpu(void);
 
@@ -14,6 +15,8 @@ static uint64_t sys_write(uint64_t fd, uint64_t buffer, uint64_t len);
 static uint64_t sys_video(uint64_t width, uint64_t height, uint64_t bpp);
 static uint64_t sys_draw(uint64_t x, uint64_t y, uint64_t color);
 static uint64_t sys_sbrk(uint64_t increment, uint64_t arg2, uint64_t arg3);
+static uint64_t sys_memblock(uint64_t size, uint64_t arg2, uint64_t arg3);
+static uint64_t sys_freeblock(uint64_t block_pointer, uint64_t arg2, uint64_t arg3);
 static uint64_t sys_time(uint64_t arg1, uint64_t arg2, uint64_t arg3);
 static uint64_t sys_date(uint64_t arg1, uint64_t arg2, uint64_t arg3);
 static uint64_t sys_set_time(uint64_t hour, uint64_t minutes, uint64_t seconds);
@@ -42,6 +45,8 @@ void init_syscalls() {
 	syscalls[SYS_VIDEO] = sys_video;
 	syscalls[SYS_DRAW] = sys_draw;
 	syscalls[SYS_SBRK] = sys_sbrk;
+	syscalls[SYS_MEMBLOCK] = sys_memblock;
+	syscalls[SYS_FREEBLOCK] = sys_freeblock;
 
 	syscalls[SYS_TIME] = sys_time;
 	syscalls[SYS_DATE] = sys_date;
@@ -166,12 +171,20 @@ uint64_t sys_draw(uint64_t x, uint64_t y, uint64_t color) {
 	return BgaDrawPixel(x, y, r, g, b);
 }
 
-static void * MEM_START = (void *)0x600000;
+static void * MEM_START_HEAP = (void *)0x600000;
 
 /* Increments the data segment and returns the new top. NOTE: if increment is 0 then returns the old one */
 uint64_t sys_sbrk(uint64_t increment, uint64_t arg2, uint64_t arg3) {
-	MEM_START += increment;
-	return (uint64_t)MEM_START;
+	MEM_START_HEAP += increment;
+	return (uint64_t)MEM_START_HEAP;
+}
+
+uint64_t sys_memblock(uint64_t size, uint64_t arg2, uint64_t arg3) {
+	return (uint64_t)get_memblock(size);
+}
+
+uint64_t sys_freeblock(uint64_t block_pointer, uint64_t arg2, uint64_t arg3) {
+	return free_memblock((void *)block_pointer);
 }
 
 /* Shows/hides the clock in the top right corner of the screen, returns a string representation of the time with the format hh:mm:ss */

@@ -8,7 +8,7 @@
 #define STDERR 2
 #define STDDATA 3
 
-#define SYSCALLS_SIZE 12
+#define SYSCALLS_SIZE 15
 
 enum {
 	SYS_EXIT,
@@ -18,6 +18,8 @@ enum {
 	SYS_VIDEO,
 	SYS_DRAW,
 	SYS_SBRK,
+	SYS_MEMBLOCK,
+	SYS_FREEBLOCK,
 	
 	SYS_TIME,
 	SYS_DATE,

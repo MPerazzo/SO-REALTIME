@@ -36,6 +36,14 @@ void * sbrk(unsigned int increment) {
 	return (void *)_syscall(SYS_SBRK, increment, 0, 0);
 }
 
+void * memblock(unsigned int size) {
+	return (void *)_syscall(SYS_MEMBLOCK, size, 0, 0);
+}
+
+int freeblock(void * block_start) {
+	return _syscall(SYS_FREEBLOCK, (unsigned long)block_start, 0, 0);
+}
+
 void time(void) {
 	_syscall(SYS_TIME, 0, 0, 0);
 }

@@ -1,10 +1,12 @@
 #include "buddy.h"
 #include "memlib.h"
 #include "types.h"
+#include "kmem.h"
 
 static uint64_t paged_size(uint64_t size);
 
 uint64_t init_mem(uint64_t size) {
+	init_kheap();
 	return buddy_init( paged_size(size) );	
 }
 

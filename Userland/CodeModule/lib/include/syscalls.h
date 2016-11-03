@@ -21,6 +21,8 @@ enum {
 	SYS_VIDEO,
 	SYS_DRAW,
 	SYS_SBRK,
+	SYS_MEMBLOCK,
+	SYS_FREEBLOCK,
 	
 	SYS_TIME,
 	SYS_DATE,
@@ -41,8 +43,12 @@ int write(unsigned int fd, const void * buffer, unsigned int size);
 int video(unsigned int width, unsigned int height, unsigned int bpp);
 /* Pinta el pixel x,y con el color pasado en formato RGB */
 int draw(unsigned int x, unsigned int y, uint8_t r, uint8_t g, uint8_t b);
-/* Aumenta el tamaño del segmento de datos y devuelve el nuevo tope. Si increment es 0, devuelve el tope anterior*/
+/* Aumenta el tamaño del segmento de datos y devuelve el nuevo tope. Si increment es 0, devuelve el tope anterior */
 void * sbrk(unsigned int increment);
+/* Devuelve un puntero al comienzo de un bloque de memora alocado para un proceso */
+void * memblock(unsigned int size);
+/* Libera la memoria reservada por un proceso */
+int freeblock(void * block_start);
 /* Habilita/Deshabilita el reloj en la esquina superior derecha de la consola */
 void time(void);
 /* Retorna la fecha como un string con formato dd/mm/yyyy */

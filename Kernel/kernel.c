@@ -91,7 +91,7 @@ int main()
 	
 	puts_at("Arqui OS", GREEN, 0, 0);
 
-	init_kheap();
+	init_mem(1024*4*4);
 
 	//buddytest();
 
