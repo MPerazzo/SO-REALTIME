@@ -5,8 +5,9 @@
 #include <video.h>
 #include <interrupts.h>
 #include <syscalls.h>
-#include <memallocator.h>
+#include <memlib.h>
 #include <buddy.h>
+#include <types.h>
 
 extern uint8_t text;
 extern uint8_t rodata;
@@ -91,35 +92,80 @@ int main()
 	
 	puts_at("Arqui OS", GREEN, 0, 0);
 
-	//buddytest();
+	// before tests remove aligment in memlib.c, so the prints fits in screen.
+	// memtestKernel();
+	// memtestUser();
 
 	((EntryPoint)codeModuleAddress)();
 
 	return 0;
 }
 
-void buddytest() {
-
-	// test without aligment, as buddy.c functions are used instead of memlibs.
+void memtestKernel() {
 
 	init_kheap();
 
-	buddy_init(32);
+	init_mem(32, true);	
 
-	ncPrintHex(0x600000 + buddy_alloc(8));
+	void * p1 = get_memblock(8, true);
+
+	ncPrintHex(p1);
 
     ncNewline();
 
-	ncPrintHex(0x600000 + buddy_alloc(16));
+	ncPrintHex(get_memblock(16, true));
 
 	ncNewline();
 
-	ncPrintHex(0x600000 + buddy_alloc(4));
+	ncPrintHex(get_memblock(4, true));
 
 	ncNewline();
 
-	ncPrintHex(0x600000 + buddy_alloc(4));
+	void *p3 = get_memblock(4, true);
 
-	buddy_print();
+	ncPrintHex(p3);
+
+	buddy_print(true);
+
+	free_memblock(p1, true);
+
+	buddy_print(true);
+
+	free_memblock(p3, true);
+
+	buddy_print(true);
+
+	free_memblock(0x100, true);
+
+	buddy_print(true);
+}
+
+void memtestUser() {
+
+	init_uheap();
+
+	init_mem(32, false);	
+
+	// buddy_init(32);
+
+	void * p3 = get_memblock(4, false);
+
+	ncPrintHex(get_memblock(8, false));
+
+    ncNewline();
+
+	ncPrintHex(get_memblock(16, false));
+
+	ncNewline();
+
+	ncPrintHex(get_memblock(4, false));
+
+	ncNewline();
+
+	ncPrintHex(get_memblock(4, false));
+
+	free(p3, false);
+
+	buddy_print(false);
 
 }

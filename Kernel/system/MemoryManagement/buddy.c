@@ -1,16 +1,27 @@
 #include "buddy.h"
-#include "memlib.h"
+#include "kmem.h"
+#include "malloc.h"
 #include "video.h"
 #include "types.h"
 /* TODO: 
-   *remove kmalloc from syscalls, call int 80. 
    *New library for buddy print?
-   *Chunks for kmalloc?
-   *Implement kfree.
+   *Heap for processes.
+   *Test user and kernel trees.
 */
 
-void * buddy_pool;
-static node_t *buddy_head;
+uint64_t k_buddy_init(uint64_t);
+uint64_t u_buddy_init(uint64_t);
+
+
+void * k_buddy_pool;
+void * u_buddy_pool;
+
+static node_t * k_buddy_head;
+static node_t * u_buddy_head;
+
+void *(*allocatemem)(uint64_t);
+
+void (*freemem)(void *);
 
 /*
  * Attempt to allocate of pool of size 'size'
@@ -18,30 +29,64 @@ static node_t *buddy_head;
  * if either pool or head node could not be
  * allocated.
  */
-uint64_t buddy_init(uint64_t size) {
-    
-    /* allocate space for all the pages */
-    buddy_pool = kmalloc(size);
+uint64_t buddy_init(uint64_t size, bool kernelStructures) {
 
-    if (!buddy_pool) {
+    if (kernelStructures)
+        return k_buddy_init(size);
+
+    return u_buddy_init(size);
+}
+
+uint64_t k_buddy_init(uint64_t size) {
+
+    /* allocate space for all the pages */
+    k_buddy_pool = kmalloc(size);
+
+    if (!k_buddy_pool) {
         return -1;
     }
 
     /* allocate the head node of the tree */
-    buddy_head = (node_t*)kmalloc(sizeof(node_t));
+    k_buddy_head = (node_t*)kmalloc(sizeof(node_t));
 
-    if (!buddy_head) {
+    if (!k_buddy_head) {
         return -1;
     }
 
-    buddy_head->left = NULL;
-    buddy_head->right = NULL;
-    buddy_head->state = FREE;
-    buddy_head->size = size;
-    buddy_head->idx = 0;
+    k_buddy_head->left = NULL;
+    k_buddy_head->right = NULL;
+    k_buddy_head->state = FREE;
+    k_buddy_head->size = size;
+    k_buddy_head->idx = 0;
 
     return 0;
 }
+
+uint64_t u_buddy_init(uint64_t size) {
+
+    /* allocate space for all the pages */
+    u_buddy_pool = malloc(size);
+
+    if (!u_buddy_pool) {
+        return -1;
+    }
+
+    /* allocate the head node of the tree */
+    u_buddy_head = (node_t*)malloc(sizeof(node_t));
+
+    if (!u_buddy_head) {
+        return -1;
+    }
+
+    u_buddy_head->left = NULL;
+    u_buddy_head->right = NULL;
+    u_buddy_head->state = FREE;
+    u_buddy_head->size = size;
+    u_buddy_head->idx = 0;
+
+    return 0;
+}
+
 
 /*
  * Attempt to allocate a page of size 'size'
@@ -82,8 +127,8 @@ uint64_t _buddy_alloc(node_t *n, uint64_t size) {
         n->state = SPLIT;
 
         /* make two new nodes below us with half our size */
-        n->left = (node_t*)kmalloc(sizeof(node_t));
-        n->right = (node_t*)kmalloc(sizeof(node_t));
+        n->left = (node_t*)allocatemem(sizeof(node_t));
+        n->right = (node_t*)allocatemem(sizeof(node_t));
         
         /* mark them as free */
         n->left->state = FREE;
@@ -131,8 +176,8 @@ uint64_t _buddy_free(node_t *n, uint64_t idx) {
 
         /* check if we should merge this split */
         if (n->left->state == FREE && n->right->state == FREE) {
-            kfree(n->left);
-            kfree(n->right);
+            freemem(n->left);
+            freemem(n->right);
             n->left = NULL;
             n->right = NULL;
             n->state = FREE;
@@ -208,7 +253,7 @@ void _buddy_kill(node_t *n) {
     }
 
     /* free ourself */
-    kfree(n);
+    freemem(n);
 }
 
 /*
@@ -242,17 +287,70 @@ void _buddy_print(node_t *n) {
 
 /* recursion wrappers */
 
-uint64_t buddy_alloc(uint64_t size) { return _buddy_alloc(buddy_head, size); }
+uint64_t buddy_alloc(uint64_t size, bool kernelStructures) {
 
-uint64_t buddy_free(uint64_t idx) { return _buddy_free(buddy_head, idx); }
+    if (kernelStructures) {
 
-uint64_t buddy_size(uint64_t idx) { return _buddy_size(buddy_head, idx); }
+        allocatemem = &kmalloc;
 
-void buddy_print(void) {
-	puts("Buddy print is:\n", LIGHT_GREY);
-	_buddy_print(buddy_head);
+        return _buddy_alloc(k_buddy_head, size);
+    }
+
+    allocatemem = &malloc;
+
+    return _buddy_alloc(u_buddy_head, size);
+}
+
+uint64_t buddy_free(uint64_t idx, bool kernelStructures) { 
+    
+    if (kernelStructures) {
+
+        freemem = &kfree;
+
+        return _buddy_free(k_buddy_head, idx);
+    }
+
+    freemem = &free;
+
+    return _buddy_free(u_buddy_head, idx);
+}
+
+uint64_t buddy_size(uint64_t idx, bool kernelStructures) { 
+    
+    if (kernelStructures)
+        return _buddy_free(k_buddy_head, idx);
+
+    return _buddy_free(u_buddy_head, idx);
+}
+
+void buddy_print(bool kernelStructures) {
+	
+    puts("Buddy print is:\n", LIGHT_GREY);
+	
+    if (kernelStructures)
+        _buddy_print(k_buddy_head);
+
+    else
+        _buddy_print(u_buddy_head);
+
 	puts(" --END--\n", LIGHT_GREY); 
 }
 
-void buddy_kill(void) { _buddy_kill(buddy_head); }
+void buddy_kill(bool kernelStructures) { 
+    
+    if (kernelStructures) {
+
+        freemem = &kfree;
+
+        _buddy_kill(k_buddy_head);
+    }
+
+    else {
+
+        freemem = &free;
+
+        _buddy_kill(u_buddy_head);
+
+    }
+}
 

@@ -1,114 +1,55 @@
-
+#include "buddy.h"
 #include "memlib.h"
-#include "lib.h"
+#include "types.h"
+#include "kmem.h"
+#include "malloc.h"
 
-static mem_chunk_list_t* allocated = NULL;
+static uint64_t paged_size(uint64_t size);
 
-static inline int64_t abs(int64_t n);
-
-static inline int64_t abs(int64_t n) {
-  return n > 0 ? n : -n;
+uint64_t init_mem(uint64_t size, bool kernelStructures) {
+	return buddy_init( paged_size(size), kernelStructures );	
 }
 
-void * kmalloc(uint64_t size) {
+void * get_memblock(uint64_t size, bool kernelStructures) {
 
-	mem_chunk_t *chunk;
-	mem_chunk_list_t* curr, *prev;
+	int index = buddy_alloc( paged_size(size), kernelStructures );
 
-	curr = allocated;
-	prev = NULL;
+	uint64_t mem_start;
 
-	while (curr != NULL && (curr->chunk->used || curr->chunk->size < size)) {
-		prev = curr;
-		curr = curr->next;
-	}
-
-	if (curr) {
-
-		curr->chunk->size = size;
-		curr->chunk->used = true;
-
-		return curr->chunk->start;
-	}
-
-	if ( (uint64_t)prev->chunk->start + size > MEMORY_END ) {
+	if (index == -1)
 		return NULL;
-	}
 
-	chunk = (mem_chunk_t*)(prev->chunk->start + prev->chunk->size);
+	if (kernelStructures)
+		mem_start = KH_MEMORY_START;
+	else
+		mem_start = UH_MEMORY_START;
 
-	memset(chunk, 0, sizeof(mem_chunk_t));
-	chunk->start = (void*)(((uint64_t)chunk) + sizeof(mem_chunk_t) + sizeof(mem_chunk_list_t));
-	chunk->size = size;
-	chunk->used = true;
-
-	curr = (mem_chunk_list_t*)( ((uint64_t)chunk) + sizeof(mem_chunk_t));
-	memset(curr, 0, sizeof(mem_chunk_list_t));
-	curr->chunk = chunk;
-	curr->next = NULL;
-
-	prev->next = curr;
-
-	return chunk->start;
+	return  (void *)(intptr_t)(mem_start + index);	
 }
 
-void * kcalloc(uint32_t amount, uint64_t size) {
+uint64_t free_memblock( void * block_pointer, bool kernelStructures) {
+	
+	uint64_t mem_start;
 
-	void *mem;
-	if ( (mem = kmalloc(size*amount))  ) {
-		memset(mem, 0, size*amount);
-	}
-	return mem;
+	if (kernelStructures)
+		mem_start = KH_MEMORY_START;
+	else
+		mem_start = UH_MEMORY_START;
+
+	if ((void *)(intptr_t)mem_start>block_pointer)
+		return -1;
+
+	return buddy_free( (uint64_t) (block_pointer - mem_start), kernelStructures);
 }
 
-void kfree(void* mem) {
+static uint64_t paged_size(uint64_t size) {
+	
+	if (size%PAGE_SIZE == 0)
+		return size;
 
-	mem_chunk_list_t* curr, *prev;
-	bool append_to_prev = false;
+	uint64_t fits;
 
-	prev = NULL;
-	curr = allocated;
+	fits = size / PAGE_SIZE;
 
-	while (curr != NULL && abs(mem - curr->chunk->start) > curr->chunk->size) {
-		prev = curr;
-		curr = curr->next;
-	}
-
-	if (curr != NULL) {
-		curr->chunk->used = false;
-		if (prev && !prev->chunk->used) {
-			prev->chunk->size += curr->chunk->size;
-			prev->next = curr->next;
-			append_to_prev = true;
-		}
-		if (curr->next && !curr->next->chunk->used) {
-			if (append_to_prev) {
-				prev->chunk->size += curr->next->chunk->size;
-				prev->next = curr->next->next;
-			} else {
-				curr->chunk->size += curr->next->chunk->size;
-				curr->next = curr->next->next;
-			}
-		}
-	}
-}
-
-void init_kheap() {
-
-	mem_chunk_t *chunk;
-	uint16_t size;
-
-	size = sizeof(mem_chunk_t) + sizeof(mem_chunk_list_t);
-
-	chunk = (mem_chunk_t*)(long int)(MEMORY_START);
-	memset(chunk, 0, size);
-
-	chunk->start = (void*)chunk;
-	chunk->used = true;
-	chunk->size = size;
-
-	allocated = (void*)(MEMORY_START + sizeof(mem_chunk_t));
-	allocated->next = NULL;
-	allocated->chunk = chunk;
-
+	return PAGE_SIZE*(fits+1);
 }
