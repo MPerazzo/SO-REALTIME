@@ -4,7 +4,6 @@
 #define __BUDDY_H__
 
 #include <stdint.h>
-#include <types.h>
 
 /* Node can only be in one of 3 states */
 typedef enum {
@@ -22,11 +21,11 @@ typedef struct node_t {
 } node_t;
 
 
-uint64_t buddy_init(uint64_t size, bool);
-uint64_t buddy_alloc(uint64_t size, bool);
-uint64_t buddy_free(uint64_t idx, bool);
-uint64_t buddy_size(uint64_t idx, bool);
-void buddy_print(bool);
-void buddy_kill(bool);
+uint64_t buddy_init(uint64_t size);
+uint64_t buddy_alloc(uint64_t size);
+uint64_t buddy_free(uint64_t idx);
+uint64_t buddy_size(uint64_t idx);
+void buddy_print(void);
+void buddy_kill(void);
 
 #endif

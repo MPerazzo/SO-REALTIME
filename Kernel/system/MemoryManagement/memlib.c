@@ -1,46 +1,31 @@
 #include "buddy.h"
 #include "memlib.h"
 #include "types.h"
-#include "kmem.h"
-#include "malloc.h"
 
 static uint64_t paged_size(uint64_t size);
 
-uint64_t init_mem(uint64_t size, bool kernelStructures) {
-	return buddy_init( paged_size(size), kernelStructures );	
+uint64_t init_mem(uint64_t size) {
+	return buddy_init( paged_size(size) );	
 }
 
-void * get_memblock(uint64_t size, bool kernelStructures) {
+void * get_memblock(uint64_t size) {
 
-	int index = buddy_alloc( paged_size(size), kernelStructures );
-
-	uint64_t mem_start;
+	int index = buddy_alloc( paged_size(size) );
 
 	if (index == -1)
 		return NULL;
 
-	if (kernelStructures)
-		mem_start = KH_MEMORY_START;
-	else
-		mem_start = UH_MEMORY_START;
-
-	return  (void *)(intptr_t)(mem_start + index);	
+	return  (void *)(intptr_t)(MEM_START + index);	
 }
 
-uint64_t free_memblock( void * block_pointer, bool kernelStructures) {
-	
-	uint64_t mem_start;
+uint64_t free_memblock( void * block_pointer) {
 
-	if (kernelStructures)
-		mem_start = KH_MEMORY_START;
-	else
-		mem_start = UH_MEMORY_START;
-
-	if ((void *)(intptr_t)mem_start>block_pointer)
+	if ((void *)(intptr_t)MEM_START>block_pointer)
 		return -1;
 
-	return buddy_free( (uint64_t) (block_pointer - mem_start), kernelStructures);
+	return buddy_free( (uint64_t) (block_pointer - MEM_START));
 }
+
 
 static uint64_t paged_size(uint64_t size) {
 	

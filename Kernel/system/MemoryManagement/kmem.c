@@ -1,11 +1,10 @@
 
 #include "kmem.h"
 #include "lib.h"
-#include "memchunk.h"
-
-static inline int64_t abs(int64_t n);
 
 static mem_chunk_list_t* allocated = NULL;
+
+static inline int64_t abs(int64_t n);
 
 static inline int64_t abs(int64_t n) {
   return n > 0 ? n : -n;
@@ -14,7 +13,7 @@ static inline int64_t abs(int64_t n) {
 void * kmalloc(uint64_t size) {
 
 	mem_chunk_t *chunk;
-	mem_chunk_list_t * curr, *prev;
+	mem_chunk_list_t* curr, *prev;
 
 	curr = allocated;
 	prev = NULL;
@@ -32,7 +31,7 @@ void * kmalloc(uint64_t size) {
 		return curr->chunk->start;
 	}
 
-	if ( (uint64_t)prev->chunk->start + size > KH_MEMORY_END ) {
+	if ( (uint64_t)prev->chunk->start + size > MEMORY_END ) {
 		return NULL;
 	}
 
@@ -62,7 +61,7 @@ void * kcalloc(uint32_t amount, uint64_t size) {
 	return mem;
 }
 
-void kfree(void * mem) {
+void kfree(void* mem) {
 
 	mem_chunk_list_t* curr, *prev;
 	bool append_to_prev = false;
@@ -101,14 +100,14 @@ void init_kheap() {
 
 	size = sizeof(mem_chunk_t) + sizeof(mem_chunk_list_t);
 
-	chunk = (mem_chunk_t*)(long int)(KH_MEMORY_START);
+	chunk = (mem_chunk_t*)(long int)(MEMORY_START);
 	memset(chunk, 0, size);
 
 	chunk->start = (void*)chunk;
 	chunk->used = true;
 	chunk->size = size;
 
-	allocated = (void*)(KH_MEMORY_START + sizeof(mem_chunk_t));
+	allocated = (void*)(MEMORY_START + sizeof(mem_chunk_t));
 	allocated->next = NULL;
 	allocated->chunk = chunk;
 
