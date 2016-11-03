@@ -5,6 +5,7 @@
 #include <timer.h>
 #include <rtc.h>
 #include <memlib.h>
+#include <process.h>
 
 extern void haltcpu(void);
 
@@ -17,6 +18,10 @@ static uint64_t sys_draw(uint64_t x, uint64_t y, uint64_t color);
 static uint64_t sys_sbrk(uint64_t increment, uint64_t arg2, uint64_t arg3);
 static uint64_t sys_memblock(uint64_t size, uint64_t arg2, uint64_t arg3);
 static uint64_t sys_freeblock(uint64_t block_pointer, uint64_t arg2, uint64_t arg3);
+static uint64_t sys_pinitheap(uint64_t process, uint64_t arg2, uint64_t arg3);
+static uint64_t sys_malloc(uint64_t process, uint64_t size, uint64_t arg3);
+static uint64_t sys_calloc(uint64_t process, uint64_t amount, uint64_t size);
+static uint64_t sys_free(uint64_t process, uint64_t mem, uint64_t arg3);
 static uint64_t sys_time(uint64_t arg1, uint64_t arg2, uint64_t arg3);
 static uint64_t sys_date(uint64_t arg1, uint64_t arg2, uint64_t arg3);
 static uint64_t sys_set_time(uint64_t hour, uint64_t minutes, uint64_t seconds);
@@ -179,12 +184,34 @@ uint64_t sys_sbrk(uint64_t increment, uint64_t arg2, uint64_t arg3) {
 	return (uint64_t)MEM_START_HEAP;
 }
 
+/* Reserves a block of memory and returns a pointer to the beginning of it */
 uint64_t sys_memblock(uint64_t size, uint64_t arg2, uint64_t arg3) {
 	return (uint64_t)get_memblock(size);
 }
 
+/* Release the memory reserved previously by sys_memblock */
 uint64_t sys_freeblock(uint64_t block_pointer, uint64_t arg2, uint64_t arg3) {
 	return free_memblock((void *)block_pointer);
+}
+
+/* Initializes the heap of the process that is running */
+uint64_t sys_pinitheap(uint64_t arg1, uint64_t arg2, uint64_t arg3) {
+	return init_process_heap(current_process());
+}
+
+/* Allocates memory inside a block reserved previously by sys_memblock */
+uint64_t sys_malloc(uint64_t size, uint64_t arg2, uint64_t arg3) {
+	return (uint64_t)malloc(current_process(), size);
+}
+
+/* Similar to malloc but fills the memory that is being allocated with ceros */
+uint64_t sys_calloc(uint64_t amount, uint64_t size, uint64_t arg3) {
+	return (uint64_t)calloc(current_process(), amount, size);
+}
+
+/* Releases the memory that is being pointed by mem, which was previously reserved by calloc or malloc */
+uint64_t sys_free(uint64_t mem, uint64_t arg2, uint64_t arg3) {
+	return free(current_process(), (void *)mem);
 }
 
 /* Shows/hides the clock in the top right corner of the screen, returns a string representation of the time with the format hh:mm:ss */
@@ -229,3 +256,8 @@ uint64_t sys_wait(uint64_t millis, uint64_t arg2, uint64_t arg3) {
 	wait(millis);
 	return 0;
 }
+
+
+
+
+

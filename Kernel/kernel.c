@@ -7,6 +7,7 @@
 #include <syscalls.h>
 #include <memlib.h>
 #include <buddy.h>
+#include <process.h>
 
 extern uint8_t text;
 extern uint8_t rodata;
@@ -19,6 +20,9 @@ static const uint64_t PageSize = 0x1000;
 
 static void * const codeModuleAddress = (void*)0x400000;
 static void * const dataModuleAddress = (void*)0x500000;
+
+process_t testingprocess;
+process_t * current_process();
 
 typedef int (*EntryPoint)();
 
@@ -95,6 +99,8 @@ int main()
 
 	//buddytest();
 
+	//processmem_test();
+
 	((EntryPoint)codeModuleAddress)();
 
 	return 0;
@@ -109,7 +115,7 @@ void buddytest() {
 
 	ncPrintHex(0x600000 + buddy_alloc(8));
 
-        ncNewline();
+    ncNewline();
 
 	ncPrintHex(0x600000 + buddy_alloc(16));
 
@@ -124,3 +130,70 @@ void buddytest() {
 	buddy_print();
 
 }
+
+void processmem_test() {
+
+	// test heap allocs, using aligment
+
+	void * p1;
+
+	p1 = get_memblock(1024);
+
+	ncPrintHex(p1);
+
+	testingprocess.heap_start = p1;
+
+	testingprocess.heap_size = 4096;
+
+	init_process_heap(current_process());
+
+    ncNewline();
+
+
+    void * p2;
+
+	ncPrintHex(p2=malloc(current_process(), 1000));
+
+    ncNewline();
+
+    void * p3;
+
+	ncPrintHex(p3=malloc(current_process(), 1000));
+
+    ncNewline();
+
+    void * p4;
+
+	ncPrintHex(p4=malloc(current_process(), 1000));
+
+    ncNewline();
+
+    void * p5;
+
+	ncPrintHex(p5=malloc(current_process(), 100));
+
+    ncNewline();
+
+    void * p6;
+
+	ncPrintHex(p6=malloc(current_process(), 100));
+
+	ncNewline();
+
+	void * p7;
+
+	ncPrintHex(p7=malloc(current_process(), 1000));
+
+	ncNewline();
+
+	free(current_process(), p3);
+
+	ncPrintHex(malloc(current_process(), 1000));
+}
+
+
+// this function is for testing processes, scheduler will tell which process is the current.
+process_t * current_process() {
+	return &testingprocess;
+}
+

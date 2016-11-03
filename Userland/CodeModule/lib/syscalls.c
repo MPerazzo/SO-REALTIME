@@ -44,6 +44,18 @@ int freeblock(void * block_start) {
 	return _syscall(SYS_FREEBLOCK, (unsigned long)block_start, 0, 0);
 }
 
+void * s_malloc(unsigned int size) {
+	return (void *)_syscall(SYS_MALLOC, size, 0, 0);
+}
+
+void * s_calloc(unsigned int amount, unsigned int size) {
+	return (void *)_syscall(SYS_CALLOC, amount, size, 0);
+}
+
+void s_free(void * mem) {
+	_syscall(SYS_FREE, (uint64_t)mem, 0, 0);
+}
+
 void time(void) {
 	_syscall(SYS_TIME, 0, 0, 0);
 }

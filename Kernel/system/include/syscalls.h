@@ -2,13 +2,14 @@
 #define SYSCALLS_H
 
 #include <stdint.h>
+#include <process.h>
 
 #define STDIN 0
 #define STDOUT 1
 #define STDERR 2
 #define STDDATA 3
 
-#define SYSCALLS_SIZE 15
+#define SYSCALLS_SIZE 18
 
 enum {
 	SYS_EXIT,
@@ -20,6 +21,10 @@ enum {
 	SYS_SBRK,
 	SYS_MEMBLOCK,
 	SYS_FREEBLOCK,
+	SYS_PINITHEAP,
+	SYS_MALLOC,
+	SYS_FREE,
+	SYS_CALLOC,
 	
 	SYS_TIME,
 	SYS_DATE,

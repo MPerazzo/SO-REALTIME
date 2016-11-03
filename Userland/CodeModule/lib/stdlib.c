@@ -2,24 +2,15 @@
 #include <syscalls.h>
 
 void * malloc(uint64_t size) {
-	void * ret = sbrk(0);	// pido la direccion actual
-	sbrk(size);				// "incremento" el segmento de datos
-	return ret;
+	return s_malloc(size);
 }
 
-void * calloc(uint64_t size) {
-	int i;
-	char * ret = malloc(size);
-
-	for (i = 0; i < size; i++) {
-		ret[i] = 0;
-	}
-
-	return (void *)ret;
+void * calloc(uint64_t amount, uint64_t size) {
+	return s_calloc(amount, size);
 }
 
 void free(void * ptr) {
-	return;
+	return s_free(ptr);
 }
 
 int atoi(const char * str) {

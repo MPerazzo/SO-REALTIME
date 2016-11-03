@@ -31,7 +31,7 @@ void * kmalloc(uint64_t size) {
 		return curr->chunk->start;
 	}
 
-	if ( (uint64_t)prev->chunk->start + size > MEMORY_END ) {
+	if ( (uint64_t)prev->chunk->start + prev->chunk->size + size > MEMORY_END ) {
 		return NULL;
 	}
 
