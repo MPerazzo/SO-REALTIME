@@ -8,6 +8,7 @@
 #include <memlib.h>
 #include <buddy.h>
 #include <process.h>
+#include <shared.h>
 
 extern uint8_t text;
 extern uint8_t rodata;
@@ -92,14 +93,19 @@ int main()
 	clear_screen();
 	init_syscalls();
 	init_interrupts();
+
+	init_mem(1024*4*40);
+	init_shared();
 	
 	puts_at("Arqui OS", GREEN, 0, 0);
-
-	init_mem(1024*4*4);
 
 	//buddytest();
 
 	//processmem_test();
+
+	//shared_test1();
+
+	//shared_test2();
 
 	((EntryPoint)codeModuleAddress)();
 
@@ -191,6 +197,82 @@ void processmem_test() {
 	ncPrintHex(malloc(current_process(), 1000));
 }
 
+
+void shared_test1() {
+
+	void * p1;
+
+	ncPrintDec(shmget("foo", 600, true));
+
+	ncNewline();
+
+	ncPrintDec(shmget("foo", 600, false));
+
+	ncNewline();
+
+	ncPrintHex(p1=shmat(1));
+
+	ncNewline();
+
+	shmat(1);
+
+	shmdetach(p1);
+
+	ncPrintHex(shmat(1));
+
+	ncNewline();
+
+	shmdetach(p1);
+
+	shmdetach(p1);
+
+	ncPrintHex(shmat(1));
+}
+
+void shared_test2() {
+
+	ncPrintDec(shmget("GG", 600, true));
+
+	ncNewline();
+
+	ncPrintDec(shmget("GGG", 600, true));
+
+	ncNewline();
+
+	ncPrintDec(shmget("GG",600, true));
+
+	ncNewline();
+
+	ncPrintHex(shmat(10));
+
+	ncNewline();
+
+	ncPrintHex(shmat(1));
+
+	ncNewline();
+
+	ncPrintHex(shmat(2));
+
+	ncNewline();
+
+	ncPrintHex(shmat(3));
+
+	ncNewline();
+
+	void * p1;
+
+	ncPrintDec(shmget("Probando", 600, false));
+
+	ncNewline();
+
+	ncPrintHex(p1=shmat(3));
+
+	ncNewline();
+
+	shmdetach(p1);
+
+	ncPrintHex(shmat(3));
+}
 
 // this function is for testing processes, scheduler will tell which process is the current.
 process_t * current_process() {
