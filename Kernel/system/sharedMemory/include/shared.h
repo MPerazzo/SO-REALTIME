@@ -2,11 +2,12 @@
 #define __SHARED_H__
 
 #include <types.h>
+#include <process.h>
 
 #define MAX_SHBLOCKS 10
 
 void init_shared();
-int64_t shmget(char *, uint64_t, bool);
+int64_t shmget(char *,uint64_t, bool);
 void * shmat(uint64_t);
 int shmdetach(void *);
 

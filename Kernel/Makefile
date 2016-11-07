@@ -25,6 +25,6 @@ $(LOADEROBJECT):
 	$(ASM) $(ASMFLAGS) $(LOADERSRC) -o $(LOADEROBJECT)
 
 clean:
-	rm -rf system/*.o system/asm/*.o system/video/*.o drivers/*.o system/MemoryManagement/*.o *.o *.bin
+	rm -rf system/*.o system/asm/*.o system/video/*.o drivers/*.o system/MemoryManagement/*.o util/*.o system/sharedMemory/*.o *.o *.bin
 
 .PHONY: all clean

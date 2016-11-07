@@ -4,6 +4,8 @@
 #include <kmem.h>
 #include <util.h>
 
+bool freeSpace();
+
 uint64_t current;
 
 mem_shared_t * mems[MAX_SHBLOCKS];
@@ -13,65 +15,66 @@ void init_shared() {
 	current = 1;
 
 	int i;
+
 	for (i=0; i<MAX_SHBLOCKS; i++)
 		mems[i]=NULL;
 }
-
 
 int64_t shmget(char * name, uint64_t size, bool overwrite) {
 
 	if (current == MAX_SHBLOCKS)
 		return -1;
 
-	bool founded = false;
+	bool equals = false;
 
 	if (name==NULL || size<0)
 		return -1;
 
-	int id = -1;
-	int j;
+	uint64_t pos = -1;
+	uint64_t j;
 
 	for (j=0; j<current; j++) {
 
 		if (mems[j] == NULL)
-			id=j;
+			pos=j;
 
 		else {
 
 			if (strcmp(mems[j]->name, name) == 0) {
-				if (overwrite) {
-					founded = true;
-					id=j;
-					break;
-				}
-				else
-					return j+1;
+				equals = true;
+				pos=j;
+				break;
 			}
 		}
 	}
 
-	if (id == -1) // no space avaible
+	if (pos == -1) // no space avaible
 		return -1;
 
-	void * aux = kmalloc(sizeof(mem_shared_t));
+	uint64_t id = pos + 1;
 
-	if (aux == NULL)
-		return -1;
+	if (overwrite || (!overwrite && !equals) ) {
 
-	mems[id] = (mem_shared_t *)aux;
+		void * aux = kmalloc(sizeof(mem_shared_t));
 
-	mems[id]->name = kmalloc(strlen(name) +1);
+		if (aux == NULL)
+			return -1;
 
-	strcpy(mems[id]->name, name);
+		mems[pos] = (mem_shared_t *)aux;
 
-	mems[id]->start = get_memblock(size);
+		mems[pos]->name = kmalloc(strlen(name) +1);
 
-	mems[id]->sim_access = 0;
+		strcpy(mems[pos]->name, name);
 
-	if (!founded)
+		mems[pos]->start = get_memblock(size);
+
+		mems[pos]->sim_access = 0;
+	}
+
+	if (!equals && !freeSpace())
 		current++;
 
-	return id+1;
+	return id;
 }
 
 void * shmat(uint64_t id) {
@@ -119,3 +122,17 @@ int shmdetach(void * address) {
 
 	return -1;
 }
+
+bool freeSpace() {
+
+	int j;
+
+	for (j=0; j<current; j++) {
+
+		if (mems[j] == NULL)
+			return true;
+	}
+
+	return false;
+}
+

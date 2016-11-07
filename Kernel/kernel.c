@@ -9,6 +9,7 @@
 #include <buddy.h>
 #include <process.h>
 #include <shared.h>
+#include <kmem.h>
 
 extern uint8_t text;
 extern uint8_t rodata;
@@ -99,11 +100,13 @@ int main()
 	
 	puts_at("Arqui OS", GREEN, 0, 0);
 
+	//list_test();
+
 	//buddytest();
 
 	//processmem_test();
 
-	//shared_test1();
+	//shared_test2();
 
 	//shared_test2();
 
@@ -112,90 +115,90 @@ int main()
 	return 0;
 }
 
-void buddytest() {
+// void buddytest() {
 
-	// test without aligment, as buddy.c functions are used instead of memlibs.
-
-
-	buddy_init(32);
-
-	ncPrintHex(0x600000 + buddy_alloc(8));
-
-    ncNewline();
-
-	ncPrintHex(0x600000 + buddy_alloc(16));
-
-	ncNewline();
-
-	ncPrintHex(0x600000 + buddy_alloc(4));
-
-	ncNewline();
-
-	ncPrintHex(0x600000 + buddy_alloc(4));
-
-	buddy_print();
-
-}
-
-void processmem_test() {
-
-	// test heap allocs, using aligment
-
-	void * p1;
-
-	p1 = get_memblock(1024);
-
-	ncPrintHex(p1);
-
-	testingprocess.heap_start = p1;
-
-	testingprocess.heap_size = 4096;
-
-	init_process_heap(current_process());
-
-    ncNewline();
+// 	// test without aligment, as buddy.c functions are used instead of memlibs.
 
 
-    void * p2;
+// 	buddy_init(32);
 
-	ncPrintHex(p2=malloc(current_process(), 1000));
+// 	ncPrintHex(0x600000 + buddy_alloc(8));
 
-    ncNewline();
+//     ncNewline();
 
-    void * p3;
+// 	ncPrintHex(0x600000 + buddy_alloc(16));
 
-	ncPrintHex(p3=malloc(current_process(), 1000));
+// 	ncNewline();
 
-    ncNewline();
+// 	ncPrintHex(0x600000 + buddy_alloc(4));
 
-    void * p4;
+// 	ncNewline();
 
-	ncPrintHex(p4=malloc(current_process(), 1000));
+// 	ncPrintHex(0x600000 + buddy_alloc(4));
 
-    ncNewline();
+// 	buddy_print();
 
-    void * p5;
+// }
 
-	ncPrintHex(p5=malloc(current_process(), 100));
+// void processmem_test() {
 
-    ncNewline();
+// 	// test heap allocs, using aligment
 
-    void * p6;
+// 	void * p1;
 
-	ncPrintHex(p6=malloc(current_process(), 100));
+// 	p1 = get_memblock(1024);
 
-	ncNewline();
+// 	ncPrintHex(p1);
 
-	void * p7;
+// 	testingprocess.heap_start = p1;
 
-	ncPrintHex(p7=malloc(current_process(), 1000));
+// 	testingprocess.heap_size = 4096;
 
-	ncNewline();
+// 	init_process_heap(current_process());
 
-	free(current_process(), p3);
+//     ncNewline();
 
-	ncPrintHex(malloc(current_process(), 1000));
-}
+
+//     void * p2;
+
+// 	ncPrintHex(p2=malloc(current_process(), 1000));
+
+//     ncNewline();
+
+//     void * p3;
+
+// 	ncPrintHex(p3=malloc(current_process(), 1000));
+
+//     ncNewline();
+
+//     void * p4;
+
+// 	ncPrintHex(p4=malloc(current_process(), 1000));
+
+//     ncNewline();
+
+//     void * p5;
+
+// 	ncPrintHex(p5=malloc(current_process(), 100));
+
+//     ncNewline();
+
+//     void * p6;
+
+// 	ncPrintHex(p6=malloc(current_process(), 100));
+
+// 	ncNewline();
+
+// 	void * p7;
+
+// 	ncPrintHex(p7=malloc(current_process(), 1000));
+
+// 	ncNewline();
+
+// 	free(current_process(), p3);
+
+// 	ncPrintHex(malloc(current_process(), 1000));
+// }
 
 
 void shared_test1() {
@@ -275,7 +278,9 @@ void shared_test2() {
 }
 
 // this function is for testing processes, scheduler will tell which process is the current.
+
 process_t * current_process() {
 	return &testingprocess;
 }
+
 
